@@ -1,0 +1,194 @@
+﻿@model HC.WebApp.Models.EmployeeModel
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+    <head>
+        <meta name="viewport" content="width=device-width" />
+        <title>HC</title>
+    </head>
+
+<script>
+
+    $(document).ready(function () {
+
+
+        $('#confirmModal').on('show.bs.modal', function (event) {
+
+            var options =  $('#confirmModal').data().modal.options;
+            var recipient = options.guidid;
+            $('#lblMessage').text('Are you sure? Delete can be undo. ')
+            $('#hidGuid').text(recipient)
+            
+        })
+
+       
+        $('#demoGrid').dataTable({
+            "processing": true, // for show progress bar
+            "serverSide": true, // for process server side
+            "filter": false, // this is for disable filter (search box)
+            "orderMulti": false, // for disable multiple column at once
+            "pageLength": 5,
+            "ajax": {
+                "url": "/api/services",
+                "type": "GET",
+                "datatype": "json",
+                dataSrc: ''
+            },
+            "columns": [
+                { "data": "ID", "name": "ID", "autoWidth": true },
+                { "data": "FullName", "name": "FullName", "autoWidth": true },
+                { "data": "Age", "name": "Age", "autoWidth": true },
+                { "data": "City", "name": "City", "autoWidth": true },
+                { "data": "Email", "name": "Email", "autoWidth": true },
+                { "data": "Salary", "name": "Salary", "autoWidth": true },
+                {
+                    "render": function (data, type, full, meta) { return '<a class="btn btn-info" onclick="ShowEmployeeEdit(' + full.Id + ');">Edit</a>'; }
+                },
+                {
+                    data: null, render: function (data, type, row) {
+                        var codigo = "<button type='button' id='Delete" + row.Id + "' class='btn btn-danger' data-guidid='"  + row.GuidId + "' data-toggle='modal'  data-target='#confirmModal'>Delete</button>"
+                        return codigo;
+                    }
+                }
+               
+            ]
+        });
+
+        ShowMain();
+    });
+</script>
+
+
+@{
+    ViewBag.Title = "Index";
+}
+
+<h2>Employee Catalog - HC Tech</h2>
+<body>
+    <br />
+    <button onclick="ShowEmployeeAdd();" class="btn btn-primary btn-large" id="btnAddEmployee">Add Employee</button>
+    <br />
+    <br />
+
+
+    <div class="container" id="divNewEmployee">
+
+        @using (Html.BeginForm("Add", "Employee", FormMethod.Post, new { id = "empform" }))
+        {
+            @Html.AntiForgeryToken()
+            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+            <div class="form-group">
+                @Html.LabelFor(model => model.FullName, "Full Name")
+                @Html.TextBoxFor(model => model.FullName, new { @class = "form-control" })
+            </div>
+            <div class="form-group">
+                @Html.LabelFor(model => model.Age, "Age")
+                @Html.TextBoxFor(model => model.Age, new { @class = "form-control" })
+            </div>
+            <div class="form-group">
+                @Html.LabelFor(model => model.City, "City")
+                @Html.TextBoxFor(model => model.City, new { @class = "form-control" })
+            </div>
+            <div class="form-group">
+                @Html.LabelFor(model => model.Email, "Email")
+                @Html.TextBoxFor(model => model.Email, new { @class = "form-control" })
+            </div>
+            <div class="form-group">
+                @Html.LabelFor(model => model.Salary, "Salary")
+                @Html.TextBoxFor(model => model.Salary, new { @class = "form-control" })
+            </div>
+
+            <input type="submit" value="Create" class="btn btn-primary btn-large" />
+            <input onclick="ShowMain();" type="button" value="Cancel" class="btn btn-primary btn-large" />
+
+        }
+
+
+    </div>
+
+    <div class="container" id="divPrincipal">
+        <br />
+        <div style="width:90%; margin:0 auto;">
+            <table id="demoGrid" class="table table-striped table-bordered dt-responsive nowrap" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>FullName</th>
+                        <th>Age</th>
+                        <th>City</th>
+                        <th>Email</th>
+                        <th>Salary</th>
+                        <th>Edit</th>
+                        <th>Delete</th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="confirmModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p id="lblMessage"></p>
+                    <input type="hidden" id="hidGuid" />
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" onclick="Delete();" class="btn btn-primary" data-dismiss="modal">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+<script>
+
+    
+    function ShowEmployeeAdd() {
+        $('#divPrincipal').hide();
+        $('#divNewEmployee').show();    
+        $('#btnAddEmployee').hide();
+        $('#btnCancelAddEmployee').show();
+            
+    }
+
+    function ShowMain() {
+        $('#divPrincipal').show();
+        $('#divNewEmployee').hide();
+        $('#btnAddEmployee').show();
+        $('#btnCancelAddEmployee').hide();
+        
+
+        
+    }
+
+    function ShowEmployeeEdit(fullname, age, salary, email, city) {
+        $('#divPrincipal').hide();
+        $('#divNewEmployee').show();    
+        $('#btnAddEmployee').hide();
+        $('#btnCancelAddEmployee').show();
+        alert('Not Implemented Yet.');
+        }
+
+    function Delete() {
+        var guid = $('#hidGuid').text();
+        $.ajax({
+            url: "/api/services" + '?' + $.param({ "guid": guid }), type: 'DELETE', method: 'Delete', success: function (result) {
+               location.reload();
+            }
+        });
+       
+        }
+
+    
+</script>
